@@ -1,0 +1,3 @@
+# Add files that you want git to ignore here
+# You usually want to ignore environment variable files for example
+.env

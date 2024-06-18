@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  # The name of the service, this will also be internally reachable via docker dns. 
+  # `ping child-service` would be reachable by execing into another container
+  child-service: 
+    # Make sure to rename when creating a new project
+    container_name: child-project 
+    # This can be a remote image from dockerhub or github
+    image: <url>/<imagename>:<tag> 
+    build:
+      # This means the context relative to the docker-compose file, will look for docker in this dir
+      context: ./child/ 
+      # The dockerfile to use to build, alternatively can use Dockerfile.dev for different build containers when developing
+      dockerfile: Dockerfile 
+    volumes:
+      # This mounts our src directory into our container, allowing us to change files without rebuilding
+      # This is useful when developing an app via debug or refresh mode
+      - ./child-project/src/main:/app 
+
+    # External ports can be mapped to internal ports
+    # This is useful if you have multiple backend services that run on port 8080
+    # multiple external mappings can map to the same internal port
+    # In this example we map port 9000:8000 for child-project
+    # When running locally, this makes this service reachable via localhost:9000
+    # This can be a list of multiple ports as well, please see kafka below for example usage
+    ports:
+      - "9000:8000"
+
+    # https://docs.docker.com/compose/environment-variables/set-environment-variables/
+    # Set enviornment variables, alternatively can specify an environment file
+    environment: 
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: password
+    # Uncomment the below to use a env file, environment and env_file cannot be used simultaneously
+    # env_file: .env
+  
+  # Pre-built images can also be used, this is useful for using databases, redis, or other pre-built services
+  # A list of avialble images can be found on https://hub.docker.com/
+  db:
+    container_name: database
+    image: mysql:8.1
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3306:3306"
+    # Mount a external:internal mount location. 
+    # Alternatively can use docker volumes defined in "volumes"
+    volumes: 
+      - db-data:/etc/data
+
+# Docker managed volumes to persist data, useful for databases
+volumes: 
+  db-data:
+    name: "db-data-default"
